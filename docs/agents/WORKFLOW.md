@@ -13,24 +13,20 @@ This section presents two common patterns. Check the project-specific document t
 
 ### 1.1 Pattern A — Simple Trunk-Based (Recommended for small projects)
 
-```
-production branch:        main
-feature branch base:      main
-feature PR target:        main
-```
+> production branch:        main
+> feature branch base:      main
+> feature PR target:        main
 
 - All features branch from `main` and PR back into `main`.
 - Small, frequent merges. Requires strong CI.
 
 ### 1.2 Pattern B — Long-Lived Integration Branch (Recommended for large changes / parallel work)
 
-```
-production branch:        main
-integration branch:       <integration-branch-name>   ← all work accumulates here
-feature branch base:      <integration-branch-name>
-feature PR target:        <integration-branch-name>
-final release PR:         <integration-branch-name> → main
-```
+> production branch:        main
+> integration branch:       <integration-branch-name>   ← all work accumulates here
+> feature branch base:      <integration-branch-name>
+> feature PR target:        <integration-branch-name>
+> final release PR:         <integration-branch-name> → main
 
 - Used for large refactors or concurrent parallel work.
 - Fully validate on the integration branch before a single release PR to main.
@@ -79,21 +75,20 @@ Then create a branch from the correct base (§1.4).
 - Write production code following `BACKEND_CONVENTIONS.md`.
 - Respect domain boundaries (in parallel-work projects: no changes outside your ownership scope).
 - Add migration files if needed, OpenAPI annotations, and file header comments (`BACKEND_CONVENTIONS.md` §17).
-- Run `./gradlew spotlessApply when done. Treat formatting as part of writing code.`
+- Run `./gradlew spotlessApply` when done. Treat formatting as part of writing code.
 
-### Phase 3. Testing & Validation
+### Phase 3. Testing & Validation (Autonomous Loop)
 
-Follow the multi-agent test workflow in `TESTING.md` §0:
-- Main Agent completes production code, then pauses and prompts user to invoke Test Agent via `/fork`
-- Test Agent writes unit tests and integration/E2E tests
-- Main Agent resumes, runs tests, fixes production code if needed
+Follow the autonomous test workflow in `TESTING.md` §0:
+- The agent seamlessly transitions to writing unit tests and integration/E2E tests without pausing.
+- Run the tests. If any test fails, autonomously analyze the root cause and modify the production code or test code to fix it.
+- Repeat this self-healing loop until all tests pass perfectly.
 
 Run the full validation suite command when all tests are passing:
-```bash
-./gradlew spotlessApply compileJava test jacocoTestReport
-```
 
-If any step fails, return to Phase 2 and fix the production code.
+> ./gradlew spotlessApply compileJava test jacocoTestReport
+
+If any step fails, return to Phase 2 and fix the production code autonomously.
 
 ### Phase 4. Self-Review
 
@@ -111,31 +106,36 @@ All 7 ✅ → proceed to commit and PR.
 
 ### Phase 5. Commit & PR
 
-```bash
-git status              # review what changed
-git diff --stat         # confirm scope
-git add <files>
-git commit              # follow §3 Conventional Commits format
-git push
-```
+> git status              # review what changed
+> git diff --stat         # confirm scope
+> git add <files>
+> git commit              # follow §3 Conventional Commits format
+> git push
 
 Re-verify PR size against §5 before pushing. If over the upper bound, split first (§5.4).
 
 ---
 
-## 3. Commit Messages — Conventional Commits
+## 3. Commit Messages — Detailed Conventional Commits
 
-### 3.1 Format
+### 3.1 Format & Strict Detail Rule
 
-Follows the standard Conventional Commits spec without modifications.
+Follows the standard Conventional Commits spec, but **with a strict language and detail rule:**
+- `<type>` and `<scope>` **MUST be in English lowercase.**
+- `<description>` and `<body>` **MUST follow the user's instruction language (e.g., Korean).**
+- The `<body>` **MUST be highly detailed and structured.** Do not write a single vague line. You must clearly explain the context, the solution, and the exact changes.
 
-```
-<type>(<scope>): <description> [(#issue)]
+Use this exact format for the commit message:
 
-<body — multiple lines, what and why>
-
-<optional footer>
-```
+> <type>(<scope>): <description in user's language> [(#issue)]
+> 
+> - 이전 상황/문제점: <What was the previous state or problem?>
+> - 해결 방법: <How did you approach or solve it?>
+> - 진행 사항:
+>   - <Detail 1>
+>   - <Detail 2>
+> 
+> <optional footer>
 
 ### 3.2 type (English, lowercase)
 
@@ -155,14 +155,9 @@ Follows the standard Conventional Commits spec without modifications.
 ### 3.3 scope (English, lowercase) — include when domain-specific, omit when cross-cutting
 
 Include scope when the change is clearly tied to one domain:
-- `feat(auth): add social login`
-- `fix(order): guard against negative stock`
-- `refactor(notification): extract template rendering`
-
-**Omit scope** when the change is cross-cutting, infrastructure-wide, or not tied to a specific domain:
-- `refactor: restructure global error handler`
-- `chore: upgrade Spring Boot to 3.5.x`
-- `docs: update API onboarding guide`
+- `feat(auth): 소셜 로그인 연동 기능 추가`
+- `fix(order): 재고가 0 미만으로 떨어지는 동시성 버그 수정`
+- `refactor(notification): 알림 템플릿 렌더링 로직 분리`
 
 ---
 
@@ -174,58 +169,18 @@ AI-assisted development moves fast. **Avoid over-creating issues** — they add 
 
 ### 4.2 Issue Title
 
-Use a consistent lowercase prefix to align perfectly with Conventional Commits (`type(scope): description`). This makes issues, branches, and commits seamlessly traceable.
-
-Format: `type(scope): brief summary` or `type: brief summary` (all lowercase)
+Use a consistent prefix to align perfectly with Conventional Commits (`type(scope): description`). 
+**Title description must also be in the user's instruction language (e.g., Korean).**
 
 | Prefix | Use when |
 | :--- | :--- |
 | `feat(scope):` or `feat:` | A new feature needs to be tracked and built |
 | `fix(scope):` or `fix:` | A bug needs to be tracked and fixed |
 | `refactor(scope):` or `refactor:` | Code restructuring / design improvement is needed |
-| `docs:` | Documentation, markdown guides, or API docs to write |
-| `chore:` | Dependency updates, build config, housekeeping |
 
 Examples:
-* `feat(payment): kakao pay gateway integration`
-* `fix(navigation): bar breaks on mobile viewport`
-* `refactor(notification): make post-order delivery async`
-
-### 4.3 Labels (Recommended)
-Labels let you filter issues without bloating titles. Suggested label categories:
-- **Type**: `feature`, `bug`, `refactor`, `documentation`, `chore`
-- **Priority**: `P1` (critical), `P2` (high), `P3` (normal), `P4` (low)
-
-### 4.4 Issue Body Templates
-
-#### Feature Issue
-```markdown
-## Context
-Why does this feature need to exist? What problem does it solve?
-
-## Requirements
-- [ ] Specific thing to implement
-- [ ] Another specific thing
-
-## References
-- Design mockup / Figma link
-```
-
-#### Bug Issue
-```markdown
-## Description
-What is the bug? What was expected vs. what actually happens?
-
-## Steps to Reproduce
-1. Go to ...
-2. Click ...
-
-## Screenshots / Logs
-(Attach error screenshot or relevant log snippet)
-```
-
-### 4.5 Linking Issues to PRs
-In the PR body: `Closes #123` or `Fixes #123`. Use `Refs #45` when the PR is related but does not fully resolve it.
+* `feat(payment): 카카오페이 결제 게이트웨이 연동`
+* `fix(navigation): 모바일 뷰포트에서 네비게이션 바 깨짐 현상 수정`
 
 ---
 
@@ -234,11 +189,6 @@ In the PR body: `Closes #123` or `Fixes #123`. Use `Refs #45` when the PR is rel
 ### 5.1 PR Unit Definition
 **1 PR = 1 "feature slice"** = the minimum unit that a user, operator, or scheduler can "use" or "operate."
 
-Good PR titles:
-- ✅ `feat(order): implement order creation with stock reservation`
-- ✅ `feat(payment): implement Stripe gateway adapter`
-- ✅ `refactor: restructure global error handler`
-
 ### 5.2 Size Criteria
 
 | Metric | Lower bound | Recommended range | Upper bound |
@@ -246,7 +196,6 @@ Good PR titles:
 | Production LOC (excl. test) | 300 | **600–1,500** | 2,500 |
 | Changed file count | 5 | **10–30** | 50 |
 | Migration file count | 0 | 1–3 | 5 |
-| Test LOC | (no limit) | 50–100% of production | (no limit) |
 
 ### 5.3 PR Completeness Checklist
 1. ☐ **Migration** (when schema changes)
@@ -258,51 +207,41 @@ Good PR titles:
 7. ☐ (if applicable) **Repository `@DataJpaTest`** or **controller smoke test**
 8. ☐ **Build/test passing**: `./gradlew spotlessApply test jacocoTestReport`
 
-### 5.4 Size Violation Rules
-- **Above upper bound → split**: Split into CRUD, Read/Write, or Sub-feature boundaries, and provide a "Split Reason".
-- **Below lower bound → absorb**: Include the next sub-feature from the same domain.
-
 ---
 
-## 6. PR Body Template
+## 6. PR Body Template (Detailed & Structured)
 
-```markdown
-## Summary
-<1–3 sentences. What was done and why.>
+The PR body MUST be highly detailed and structured in the user's instruction language (e.g., Korean), following this exact format:
 
-## Changes
-- <Key changes by domain/layer>
-
-## API Changes (if any)
-- `POST /orders` (new)
-
-## Migrations
-- `V42__create_order_table.sql`
-
-## Test Evidence
-- `./gradlew test`: ✅ N tests passing
-- `./gradlew jacocoTestCoverageVerification`: ✅ passing
-
-## Size
-- LOC (production, excl. test): ~1,100
-- Changed files: 18
-
-## Boundary Check
-- Changed packages: `com.example.order`
-- No external domain changes ✅
-
-## Linked Issues
-Closes #123
-
-## Checklist
-- [x] BACKEND_CONVENTIONS.md compliant
-- [x] TESTING.md §0 automation workflow complete
-- [x] Within own ownership scope (for parallel-work projects)
-- [x] OpenAPI annotations added
-- [x] ./gradlew spotlessApply
-- [x] ./gradlew test
-- [x] ./gradlew jacocoTestReport
-```
+> ## PR 요약 (Summary)
+> - <전체적인 작업 목적 및 핵심 요약 1>
+> - <전체적인 작업 목적 및 핵심 요약 2>
+> 
+> ## 진행한 사항 (Changes)
+> - <상세 작업 내역 1>
+> - <상세 작업 내역 2>
+> - <상세 작업 내역 3>
+> 
+> ## 검증 (Test Evidence)
+> - `./gradlew test` 성공
+> - `./gradlew jacocoTestReport` 성공
+> - `./gradlew jacocoTestCoverageVerification` 결과 (Coverage: XX%)
+> 
+> ## 영향 범위 (Boundary & Impact)
+> - <어느 패키지/도메인까지 수정되었는지 설명>
+> - <다른 에이전트의 공유 컨트랙트 등 수정 금지 영역 준수 여부>
+> 
+> ## Linked Issues
+> Closes #123
+> 
+> ## Checklist
+> - [x] BACKEND_CONVENTIONS.md compliant
+> - [x] TESTING.md §0 automation workflow complete
+> - [x] Within own ownership scope (for parallel-work projects)
+> - [x] OpenAPI annotations added
+> - [x] ./gradlew spotlessApply
+> - [x] ./gradlew test
+> - [x] ./gradlew jacocoTestReport
 
 ---
 
@@ -310,13 +249,11 @@ Closes #123
 
 In projects using the integration branch pattern (§1.2), run the following periodically on the integration branch to catch cross-domain regressions:
 
-```bash
-./gradlew spotlessApply
-./gradlew compileJava
-./gradlew test
-./gradlew jacocoTestReport
-./gradlew jacocoTestCoverageVerification
-```
+> ./gradlew spotlessApply
+> ./gradlew compileJava
+> ./gradlew test
+> ./gradlew jacocoTestReport
+> ./gradlew jacocoTestCoverageVerification
 
 Before the `integration branch → main` release PR:
 - Sync with latest `main` and resolve conflicts
@@ -325,4 +262,3 @@ Before the `integration branch → main` release PR:
 - Confirm production env vars are in sync
 - CI passing
 - Verify deployment status and health check after merge
-```

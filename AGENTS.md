@@ -52,13 +52,11 @@ Commands requiring approval (all git commands, examples):
 `git add`, `git commit`, `git push`, `git pull`, `git checkout`, `git switch`, `git branch`, `git merge`, `git rebase`, `git reset`, `git stash`, `git cherry-pick`, `git tag`, `gh pr create`, `gh pr merge`, `gh release create`, etc.
 
 Approval request format (send to user immediately before execution):
-```
-[GIT COMMAND APPROVAL REQUEST]
-Command to run: git commit -m "feat(auth): block automatic social account merge"
-Target files/branch: <list of changed files or branch name>
-Intent: <why this command is being run>
-Please approve.
-```
+> [GIT COMMAND APPROVAL REQUEST]
+> Command to run: git commit -m "feat(auth): block automatic social account merge"
+> Target files/branch: <list of changed files or branch name>
+> Intent: <why this command is being run>
+> Please approve.
 
 Read-only git commands (`git status`, `git diff`, `git log`, `git show`) also require approval in principle, but a single brief line is sufficient since they make no changes.
 
@@ -71,13 +69,11 @@ Keywords requiring approval: `rm`, `rm -rf`, `--rm`, `--force`, `-f` (force), `D
 DB SQL: `DELETE FROM`, `DROP TABLE`, `TRUNCATE`, `ALTER TABLE ... DROP` all require prior approval.
 
 Approval request format:
-```
-[DESTRUCTIVE COMMAND APPROVAL REQUEST]
-Command to run: rm -rf build/
-Impact scope: Deletes all build artifacts under build/ (no source impact)
-Intent: Clean build artifacts for a fresh build
-Please approve.
-```
+> [DESTRUCTIVE COMMAND APPROVAL REQUEST]
+> Command to run: rm -rf build/
+> Impact scope: Deletes all build artifacts under build/ (no source impact)
+> Intent: Clean build artifacts for a fresh build
+> Please approve.
 
 ### 3.3 All Other Commands — Auto-Execute Allowed
 
@@ -93,17 +89,17 @@ If a destructive command was executed without prior approval:
 
 ---
 
-## 4. 5-Phase Workflow (Overview)
+## 4. Autonomous 5-Phase Workflow (Overview)
 
-Follow these 5 phases in order for any feature addition, bug fix, or refactoring. You must adhere to the multi-agent execution boundaries specified in Phase 3.
+Follow these 5 phases in order for any feature addition, bug fix, or refactoring. This project uses an **Autonomous Loop** workflow. The agent must execute Phase 1 through Phase 4 seamlessly without stopping for human intervention or asking for permission.
 
-| Phase | Stage | Key Output | User Checkpoint / Agent Hand-off |
+| Phase | Stage | Key Output | Workflow Rules & Autonomy Level |
 | :--- | :--- | :--- | :--- |
-| **1** | **Planning & Branching** | Work plan + affected domains + proposed API signatures | ✅ **Before starting:** Branch creation requires explicit user approval. |
-| **2** | **Implementation** | Production code (complying with `BACKEND_CONVENTIONS.md`) | — Completed by the **Main Agent**. Do not write tests here. |
-| **3** | **Testing (Multi-Agent)** | Unit & E2E Tests successfully generated and passing | 🛑 **PAUSE & HAND-OFF:** The Main Agent must stop and prompt the user to invoke the Test Agent via `/fork`. |
-| **4** | **Fix & Validation** | All tests passing (Unit ➔ E2E verification loop) | — Completed by the **Main Agent** after resuming the session. |
-| **5** | **Git Operations & PR** | Commit + PR (`WORKFLOW.md` §3 commit, §5 PR scope) | ✅ **Before each git command:** Adhere strictly to §3.1 Safety Rules. |
+| **1** | **Planning & Branching** | Work plan + affected domains + proposed API signatures | **Fully Autonomous:** Formulate the plan internally based on your task list. Do not stop for approval. |
+| **2** | **Implementation** | Production code (complying with `BACKEND_CONVENTIONS.md`) | **Fully Autonomous:** Implement business logic. Do not write tests here. |
+| **3** | **Testing (Autonomous)** | Unit & E2E Tests successfully generated and passing | **Fully Autonomous:** Transition immediately to generating tests in this session. Do NOT use `/fork`. Do NOT pause. |
+| **4** | **Fix & Validation** | All tests passing (Unit ➔ E2E verification loop) | **Fully Autonomous Self-Healing:** Run `./gradlew test`. Analyze failures and refactor code/tests autonomously without asking. |
+| **5** | **Git Operations & PR** | Commit + PR (`WORKFLOW.md` §3 commit, §5 PR scope) | 🛑 **PAUSE & HAND-OFF:** Stop here. Adhere strictly to §3.1 Safety Rules. Present commit/PR info and wait for approval. |
 
 ---
 
