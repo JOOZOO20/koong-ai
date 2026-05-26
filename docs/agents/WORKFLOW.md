@@ -43,15 +43,15 @@ Always use standard prefixes based on the work type:
 - `chore/` : Build tasks, config, dependency updates
 
 **🚨 Strict Naming Rule (ABSOLUTE PROHIBITION):**
-Branch names MUST only describe the *purpose* or *domain* of the work. 
-**NEVER include project names (e.g., `dailyme`), version numbers (e.g., `v1`, `v2`), or agent identifiers (e.g., `agent3`) in the branch name.**
+1. **No Redundant Context:** NEVER include project names (e.g., `dailyme`), version numbers (e.g., `v1`, `v2`), or agent identifiers (e.g., `agent3`) in the branch name.
+2. **Broad Scope Required:** Since one branch will accumulate multiple granular commits for a single large PR, the branch name MUST represent the **broad feature or domain**, NOT a single micro-task or API.
 
 - ❌ `feature/v2-auth-login` (Bad: includes version 'v2')
-- ❌ `feature/dailyme-v2-agent2-record-dailycall` (Bad: includes project name, version, and agent info)
-- ❌ `hotfix/v2-agent3-fix-payment` (Bad: includes version 'v2')
-- ✅ `feature/auth-login` (Good: domain and purpose only)
-- ✅ `feature/record-dailycall` (Good)
-- ✅ `hotfix/payment-rounding-error` (Good)
+- ❌ `feature/dailyme-v2-agent2-record` (Bad: includes project, version, and agent info)
+- ❌ `feature/wallet-balance-api` (Bad: Too granular for a branch that will hold a large PR)
+- ✅ `feature/auth` (Good: Broad domain)
+- ✅ `feature/wallet` (Good: Broad enough to hold balance, charge, and deduction commits)
+- ✅ `hotfix/payment-rounding-error` (Good: Hotfixes can be specific)
 
 ### 1.4 Worktree Branching
 
@@ -114,7 +114,7 @@ Re-read your own diff and verify each item:
 
 All 7 ✅ → proceed to commit and PR.
 
-### Phase 5. Commit & PR
+### Phase 5. Commit & PR (GRANULAR COMMITS, BROAD PRs)
 
 > git status              # review what changed
 > git diff --stat         # confirm scope
@@ -123,7 +123,9 @@ All 7 ✅ → proceed to commit and PR.
 > git commit              # follow §3 Conventional Commits format
 > git push
 
-Re-verify PR size against §5 before pushing. If over the upper bound, split first (§5.4).
+**🚨 Commit vs. PR Strategy:**
+- **Commits:** Should be granular and specific (e.g., `feat: 지갑 잔액 조회 API 추가`).
+- **Pull Requests (PR):** DO NOT open a PR for every single small commit or API. Accumulate your commits and open a PR ONLY when a **large domain feature** is complete (e.g., opening a PR for the entire "지갑 기능 구현" after committing all wallet-related APIs).
 
 ---
 
@@ -151,11 +153,11 @@ Follows the standard Conventional Commits spec, but **enforces a strict high-qua
 > fix: 소셜 로그인 연동 시 이메일 중복 가입 자동 병합 차단 및 검증 추가
 > 
 > - 이전 상황/문제점: 소셜 로그인 연동 시 기존 로컬 계정과 동일한 이메일을 사용할 경우, 별도의 사용자 동의 없이 자동으로 계정이 병합되어 보안 취약점 및 사용자 혼선이 발생하는 문제가 있었음.
-> - 해결 방법: 소셜 가입 및 로그인 로직 진입 시 가입 정보의 이메일 존재 여부를 우선 검증하고, 동일 이메일 감지 시 프로세스를 중단한 뒤 명시적인 계정 연동 API 호출을 강제하도록 검증 레이어를 보강함.
+> - 해결 방법: 소셜 가입 및 로그인 전 가입 정보의 이메일 존재 여부를 우선 검증하고, 동일 이메일 감지 시 명시적인 연동을 강제하도록 검증 레이어를 보강함.
 > - 진행 사항:
 >   - SocialLoginService: 가입 이메일 검증 로직 추가 및 자동 병합 코드 제거
->   - UserCredentialsRepository: 가입 방식별 이메일 중복 조회 쿼리 메서드 추가
->   - ErrorCode: 이메일 중복 가입 충돌 에러 코드(AUTH_DUPLICATE_EMAIL_MERGE_BLOCKED) 추가
+>   - UserCredentialsRepository: 가입 방식별 이메일 중복 조회 쿼리 추가
+>   - ErrorCode: 중복 가입 충돌 에러 코드(AUTH_DUPLICATE_EMAIL) 추가
 
 ### 3.2 type (English, lowercase)
 
@@ -176,9 +178,7 @@ Follows the standard Conventional Commits spec, but **enforces a strict high-qua
 You must strictly use the format `type: description`.
 
 - ❌ `feat(wallet): 지갑 잔액 조회 API 추가` (Bad: includes scope)
-- ❌ `fix(api): 결제 내역 조회 응답 포맷 수정` (Bad: includes scope)
-- ✅ `feat: 지갑 잔액 조회 API 추가` (Good: no scope)
-- ✅ `fix: 결제 내역 조회 응답 포맷 수정` (Good: no scope)
+- ✅ `feat: 지갑 잔액 조회 API 추가` (Good: no scope, granular commit)
 
 ---
 
@@ -227,7 +227,9 @@ Examples:
 ## 5. PR Scope Guide (Core)
 
 ### 5.1 PR Unit Definition
-**1 PR = 1 "feature slice"** = the minimum unit that a user, operator, or scheduler can "use" or "operate."
+**1 PR = 1 "Large Domain Feature" (도메인 기능 단위).** DO NOT create a PR for a single API implementation. A single PR must represent a cohesive, large feature block that groups multiple related commits.
+- ❌ Small Scope: PR for "지갑 잔액 조회 API 추가"
+- ✅ Large Scope: PR for "지갑 기능 구현" (containing balance check, charge, and deduction commits)
 
 ### 5.2 Size Criteria
 
@@ -240,19 +242,19 @@ Examples:
 
 ### 5.3 Size Violation Rules
 - **Above upper bound → split**: Split into CRUD, Read/Write, or Sub-feature boundaries, and provide a "Split Reason".
-- **Below lower bound → absorb**: Include the next sub-feature from the same domain.
+- **Below lower bound → absorb**: Include the next sub-feature from the same domain. DO NOT OPEN PR YET. Accumulate more commits.
 
 ---
 
 ## 6. PR Output Format (Detailed & Structured in Korean)
 
-**🚨 Language & Format Rule:**
-When you present the final PR information, you MUST provide the PR Title, Base/Compare branches, and the PR Body using the exact structure below. All text and prose MUST be strictly in Korean. Do not include "Agent N" anywhere. Do not include scopes (parentheses) in the PR Title.
+**🚨 PR Title Scope Rule:**
+PR titles MUST be broad and encompass the entire feature (e.g., `feat: 지갑 기능 구현`, `feat: 포인트 시스템 구축`), unlike commit messages which are small and specific. 
 
 > ### 📋 [PR Metadata]
-> - **PR Title**: <English type: Korean description (Follow §3.1 Title Rule. No parentheses allowed)>
+> - **PR Title**: <English type: Broad Korean description (e.g., feat: 지갑 기능 구현)>
 > - **Base Branch**: <The targeted integration branch to merge into (e.g., main)>
-> - **Compare Branch**: <Your current active feature branch (e.g., feature/record-dailycall)>
+> - **Compare Branch**: <Your current active feature branch>
 > 
 > ---
 > 
@@ -262,7 +264,7 @@ When you present the final PR information, you MUST provide the PR Title, Base/C
 > - <전체적인 작업 목적 및 핵심 요약 2>
 > 
 > ## 진행한 사항
-> - <도메인/레이어별 구체적인 변경 사항 및 구현 로직 기술 1>
+> - <도메인/레이어별 구체적인 변경 사항 및 구현 로직 기술 1 (세부 API 커밋 내용들 통합 요약)>
 > - <도메인/레이어별 구체적인 변경 사항 및 구현 로직 기술 2>
 > 
 > ## 검증
