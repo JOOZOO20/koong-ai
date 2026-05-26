@@ -134,11 +134,12 @@ Re-verify PR size against §5 before pushing. If over the upper bound, split fir
 Follows the standard Conventional Commits spec, but **enforces a strict high-quality structure and language separation**:
 
 **🚨 Language Separation & Title Rule:**
-- **Code & Syntax:** The commit type (`feat`, `fix`, `hotfix`), scope, branch names, and exact code elements (variable names, class names) **MUST be in English**.
+- **Code & Syntax:** The commit type (`feat`, `fix`, `hotfix`), branch names, and exact code elements (variable names, class names) **MUST be in English**.
 - **Prose & Explanation:** The overall description and the detailed body (context, problems, solutions) **MUST be entirely in Korean.**
 - **No Agent Mentions:** The title description MUST NOT include agent identifiers (e.g., "Agent 3"). Describe *what* was done, not *who* did it.
+- **NO SCOPE (PARENTHESES) ALLOWED:** Refer to §3.3.
 
-> <type>(<scope>): <한국어 요약 설명 (Agent 명칭 포함 금지)> [(#issue)]
+> <type>: <한국어 요약 설명 (Agent 명칭 및 괄호 포함 금지)> [(#issue)]
 > 
 > - 이전 상황/문제점: <이전에 어떤 기능적 문제, 비효율성, 구조적 한계 또는 제약이 있었는지 한국어로 상세 기술>
 > - 해결 방법: <문제를 해결하기 위해 어떤 논리나 아키텍처적 구조를 설계하여 해결했는지 한국어로 기술>
@@ -147,7 +148,7 @@ Follows the standard Conventional Commits spec, but **enforces a strict high-qua
 >   - <영향을 받은 구체적인 클래스/메서드/마이그레이션 파일 작업 내역 2>
 
 #### Best Practice Example:
-> fix(auth): 소셜 로그인 연동 시 이메일 중복 가입 자동 병합 차단 및 검증 추가
+> fix: 소셜 로그인 연동 시 이메일 중복 가입 자동 병합 차단 및 검증 추가
 > 
 > - 이전 상황/문제점: 소셜 로그인 연동 시 기존 로컬 계정과 동일한 이메일을 사용할 경우, 별도의 사용자 동의 없이 자동으로 계정이 병합되어 보안 취약점 및 사용자 혼선이 발생하는 문제가 있었음.
 > - 해결 방법: 소셜 가입 및 로그인 로직 진입 시 가입 정보의 이메일 존재 여부를 우선 검증하고, 동일 이메일 감지 시 프로세스를 중단한 뒤 명시적인 계정 연동 API 호출을 강제하도록 검증 레이어를 보강함.
@@ -169,18 +170,15 @@ Follows the standard Conventional Commits spec, but **enforces a strict high-qua
 | `docs` | Documentation only (no code impact) |
 | `chore` | Build, dependencies, config, etc. |
 
-### 3.3 scope (English, lowercase) — Strict Domain Only
+### 3.3 Scope (ABSOLUTELY FORBIDDEN)
 
-The scope MUST be a specific domain package name (e.g., `auth`, `payment`, `notification`).
-**DO NOT use generic layers, concepts, or meaningless words as scope (e.g., `contract`, `api`, `db`, `dto`, `frontend`).**
+**🚨 DO NOT USE SCOPES (PARENTHESES) AFTER THE COMMIT TYPE.**
+You must strictly use the format `type: description`.
 
-- ❌ `feat(contract): Agent 3 도메인 연동 계약 확정` (Bad: 'contract' is not a domain, and 'Agent 3' is included)
-- ❌ `fix(api): 결제 내역 조회 응답 포맷 수정` (Bad: 'api' is too generic)
-- ✅ `feat(wallet): 도메인 간 연동 계약(contract) 확정` (Good: valid domain specified)
-
-**Omit scope** when the change is cross-cutting, infrastructure-wide, or spans multiple domains.
-- ✅ `feat: 전체 도메인 연동 계약 확정` (Good: omitted scope for cross-cutting)
-- ✅ `refactor: 글로벌 에러 핸들러 구조 개편`
+- ❌ `feat(wallet): 지갑 잔액 조회 API 추가` (Bad: includes scope)
+- ❌ `fix(api): 결제 내역 조회 응답 포맷 수정` (Bad: includes scope)
+- ✅ `feat: 지갑 잔액 조회 API 추가` (Good: no scope)
+- ✅ `fix: 결제 내역 조회 응답 포맷 수정` (Good: no scope)
 
 ---
 
@@ -192,19 +190,19 @@ AI-assisted development moves fast. **Avoid over-creating issues** — they add 
 
 ### 4.2 Issue Title
 
-Use a consistent lowercase prefix to align perfectly with Conventional Commits (`type(scope): description`). This makes issues, branches, and commits seamlessly traceable.
+Use a consistent lowercase prefix to align perfectly with Conventional Commits. Do not use scopes.
 
-Format: `type(scope): brief summary` or `type: brief summary` (all lowercase)
+Format: `type: brief summary` (all lowercase type)
 
 | Prefix | Use when |
 | :--- | :--- |
-| `feat(scope):` or `feat:` | A new feature needs to be tracked and built |
-| `fix(scope):` or `fix:` | A bug needs to be tracked and fixed |
-| `refactor(scope):` or `refactor:` | Code restructuring / design improvement is needed |
+| `feat:` | A new feature needs to be tracked and built |
+| `fix:` | A bug needs to be tracked and fixed |
+| `refactor:` | Code restructuring / design improvement is needed |
 
 Examples:
-* `feat(payment): 카카오페이 결제 게이트웨이 연동`
-* `fix(navigation): 모바일 뷰포트에서 네비게이션 바 깨짐 현상 수정`
+* `feat: 카카오페이 결제 게이트웨이 연동`
+* `fix: 모바일 뷰포트에서 네비게이션 바 깨짐 현상 수정`
 
 ### 4.3 Issue Body Templates
 
@@ -249,11 +247,11 @@ Examples:
 ## 6. PR Output Format (Detailed & Structured in Korean)
 
 **🚨 Language & Format Rule:**
-When you present the final PR information, you MUST provide the PR Title, Base/Compare branches, and the PR Body using the exact structure below. All text and prose MUST be strictly in Korean. Do not include "Agent N" anywhere.
+When you present the final PR information, you MUST provide the PR Title, Base/Compare branches, and the PR Body using the exact structure below. All text and prose MUST be strictly in Korean. Do not include "Agent N" anywhere. Do not include scopes (parentheses) in the PR Title.
 
 > ### 📋 [PR Metadata]
-> - **PR Title**: <English type(scope): Korean description (Follow §3.1 Title Rule)>
-> - **Base Branch**: <The targeted integration branch to merge into (e.g., v2 or main)>
+> - **PR Title**: <English type: Korean description (Follow §3.1 Title Rule. No parentheses allowed)>
+> - **Base Branch**: <The targeted integration branch to merge into (e.g., main)>
 > - **Compare Branch**: <Your current active feature branch (e.g., feature/record-dailycall)>
 > 
 > ---
