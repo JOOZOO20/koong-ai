@@ -32,13 +32,25 @@ This section presents two common patterns. Check the project-specific document t
 - Fully validate on the integration branch before a single release PR to main.
 - The integration branch name and its lifetime are defined in the project-specific document.
 
-### 1.3 Branch Naming
+### 1.3 Branch Naming Conventions (Strict)
 
-Scope is the domain package name or affected area. Examples:
-- `feature/order-create-api`
-- `feature/auth-social-login`
-- `fix/payment-rounding-error`
-- `refactor/notification-template-extraction`
+Always use standard prefixes based on the work type:
+- `feature/` : New features or functionalities
+- `fix/` : Bug fixes for non-critical issues
+- `hotfix/` : Urgent fixes for production
+- `refactor/` : Code restructuring without behavior change
+- `docs/` : Documentation updates
+- `chore/` : Build tasks, config, dependency updates
+
+**🚨 Strict Naming Rule:**
+Branch names MUST only describe the *purpose* or *domain* of the work. 
+**DO NOT include project names, version numbers, agent identifiers, or any other redundant context in the branch name.**
+
+- ❌ `feature/dailyme-v2-agent2-record-dailycall` (Bad: includes project name, version, and agent info)
+- ❌ `hotfix/v2-agent3-fix-payment` (Bad: includes version and agent info)
+- ❌ `feature/agentA-auth-login` (Bad: includes agent info)
+- ✅ `feature/record-dailycall` (Good: domain and purpose only)
+- ✅ `hotfix/payment-rounding-error` (Good)
 
 ### 1.4 Worktree Branching
 
@@ -58,17 +70,14 @@ The guiding principle: always branch from the most recent common ancestor of all
 
 ## 2. Development Workflow
 
-Plan → implement → test → self-review → commit and open PR. Follow this order for any feature, bug fix, or refactor.
+Plan → branch → implement → test → self-review → commit and open PR. Follow this order strictly.
 
-### Phase 1. Plan Before You Branch
+### Phase 1. Plan & Branch Before You Work
 
-Before creating a branch, clarify:
-- Work scope (which domain, which feature, which user scenario)
-- Affected packages / migration numbers / cross-domain dependencies
-- API signatures (URI, method, key request/response fields)
-- Expected PR size (LOC, file count — based on §5 PR scope guide)
-
-Then create a branch from the correct base (§1.4).
+Before writing any code, you MUST:
+1. Clarify the work scope (which domain, which feature).
+2. Propose API signatures (URI, method, key request/response fields).
+3. **Create and switch to a new branch** following the §1.3 naming convention (e.g., `git checkout -b feature/your-feature-name`). **Do not work directly on `main` or the integration branch.**
 
 ### Phase 2. Implementation
 
@@ -85,7 +94,6 @@ Follow the autonomous test workflow in `TESTING.md` §0:
 - Repeat this self-healing loop until all tests pass perfectly.
 
 Run the full validation suite command when all tests are passing:
-
 > ./gradlew spotlessApply compileJava test jacocoTestReport
 
 If any step fails, return to Phase 2 and fix the production code autonomously.
@@ -116,26 +124,33 @@ Re-verify PR size against §5 before pushing. If over the upper bound, split fir
 
 ---
 
-## 3. Commit Messages — Detailed Conventional Commits
+## 3. Commit Messages — Conventional Commits
 
-### 3.1 Format & Strict Detail Rule
+### 3.1 Format & Strict Language/Detail Rule
 
-Follows the standard Conventional Commits spec, but **with a strict language and detail rule:**
-- `<type>` and `<scope>` **MUST be in English lowercase.**
-- `<description>` and `<body>` **MUST follow the user's instruction language (e.g., Korean).**
-- The `<body>` **MUST be highly detailed and structured.** Do not write a single vague line. You must clearly explain the context, the solution, and the exact changes.
+Follows the standard Conventional Commits spec, but **enforces a strict high-quality structure and language separation**:
 
-Use this exact format for the commit message:
+**🚨 Language Separation Rule:**
+- **Code & Syntax:** The commit type (`feat`, `fix`, `hotfix`), scope, branch names, and exact code elements (variable names, class names) **MUST be in English**.
+- **Prose & Explanation:** The overall description and the detailed body (context, problems, solutions) **MUST be entirely in Korean.**
 
-> <type>(<scope>): <description in user's language> [(#issue)]
+> <type>(<scope>): <한국어 요약 설명> [(#issue)]
 > 
-> - 이전 상황/문제점: <What was the previous state or problem?>
-> - 해결 방법: <How did you approach or solve it?>
+> - 이전 상황/문제점: <이전에 어떤 기능적 문제, 비효율성, 구조적 한계 또는 제약이 있었는지 한국어로 상세 기술>
+> - 해결 방법: <문제를 해결하기 위해 어떤 논리나 아키텍처적 구조를 설계하여 해결했는지 한국어로 기술>
 > - 진행 사항:
->   - <Detail 1>
->   - <Detail 2>
+>   - <영향을 받은 구체적인 클래스/메서드/마이그레이션 파일 작업 내역 1 (클래스명은 영어, 설명은 한국어)>
+>   - <영향을 받은 구체적인 클래스/메서드/마이그레이션 파일 작업 내역 2>
+
+#### Best Practice Example:
+> fix(auth): 소셜 로그인 연동 시 이메일 중복 가입 자동 병합 차단 및 검증 추가
 > 
-> <optional footer>
+> - 이전 상황/문제점: 소셜 로그인 연동 시 기존 로컬 계정과 동일한 이메일을 사용할 경우, 별도의 사용자 동의 없이 자동으로 계정이 병합되어 보안 취약점 및 사용자 혼선이 발생하는 문제가 있었음.
+> - 해결 방법: 소셜 가입 및 로그인 로직 진입 시 가입 정보의 이메일 존재 여부를 우선 검증하고, 동일 이메일 감지 시 프로세스를 중단한 뒤 명시적인 계정 연동 API 호출을 강제하도록 검증 레이어를 보강함.
+> - 진행 사항:
+>   - SocialLoginService: 가입 이메일 검증 로직 추가 및 자동 병합 코드 제거
+>   - UserCredentialsRepository: 가입 방식별 이메일 중복 조회 쿼리 메서드 추가
+>   - ErrorCode: 이메일 중복 가입 충돌 에러 코드(AUTH_DUPLICATE_EMAIL_MERGE_BLOCKED) 추가
 
 ### 3.2 type (English, lowercase)
 
@@ -143,14 +158,12 @@ Use this exact format for the commit message:
 |---|---|
 | `feat` | New feature |
 | `fix` | Bug fix |
+| `hotfix` | Urgent production fix |
 | `refactor` | Code restructuring without behavior change |
 | `perf` | Performance improvement |
 | `test` | Test code added/modified |
 | `docs` | Documentation only (no code impact) |
 | `chore` | Build, dependencies, config, etc. |
-| `style` | Formatting, semicolons, etc. |
-| `build` | Build system changes (Gradle, Docker, etc.) |
-| `ci` | CI pipeline changes (GitHub Actions, etc.) |
 
 ### 3.3 scope (English, lowercase) — include when domain-specific, omit when cross-cutting
 
@@ -169,8 +182,9 @@ AI-assisted development moves fast. **Avoid over-creating issues** — they add 
 
 ### 4.2 Issue Title
 
-Use a consistent prefix to align perfectly with Conventional Commits (`type(scope): description`). 
-**Title description must also be in the user's instruction language (e.g., Korean).**
+Use a consistent lowercase prefix to align perfectly with Conventional Commits (`type(scope): description`). This makes issues, branches, and commits seamlessly traceable.
+
+Format: `type(scope): brief summary` or `type: brief summary` (all lowercase)
 
 | Prefix | Use when |
 | :--- | :--- |
@@ -181,6 +195,24 @@ Use a consistent prefix to align perfectly with Conventional Commits (`type(scop
 Examples:
 * `feat(payment): 카카오페이 결제 게이트웨이 연동`
 * `fix(navigation): 모바일 뷰포트에서 네비게이션 바 깨짐 현상 수정`
+
+### 4.3 Issue Body Templates
+
+#### Feature Issue
+> ## Context
+> 이 기능이 왜 필요한가요? 어떤 문제를 해결하나요?
+> 
+> ## Requirements
+> - [ ] 구현해야 할 상세 기능 1
+> - [ ] 구현해야 할 상세 기능 2
+
+#### Bug Issue
+> ## Description
+> 기대했던 동작과 실제 동작의 차이는 무엇인가요?
+> 
+> ## Steps to Reproduce
+> 1. 특정 페이지로 이동
+> 2. 특정 버튼 클릭
 
 ---
 
@@ -196,40 +228,34 @@ Examples:
 | Production LOC (excl. test) | 300 | **600–1,500** | 2,500 |
 | Changed file count | 5 | **10–30** | 50 |
 | Migration file count | 0 | 1–3 | 5 |
+| Test LOC | (no limit) | 50–100% of production | (no limit) |
 
-### 5.3 PR Completeness Checklist
-1. ☐ **Migration** (when schema changes)
-2. ☐ **Entity + Repository**
-3. ☐ **Service + Business Logic**
-4. ☐ **Controller + Request/Response DTOs**
-5. ☐ **OpenAPI annotations** (`@Tag`, `@Operation`)
-6. ☐ **Service unit tests**
-7. ☐ (if applicable) **Repository `@DataJpaTest`** or **controller smoke test**
-8. ☐ **Build/test passing**: `./gradlew spotlessApply test jacocoTestReport`
+### 5.3 Size Violation Rules
+- **Above upper bound → split**: Split into CRUD, Read/Write, or Sub-feature boundaries, and provide a "Split Reason".
+- **Below lower bound → absorb**: Include the next sub-feature from the same domain.
 
 ---
 
-## 6. PR Body Template (Detailed & Structured)
+## 6. PR Body Template (Detailed & Structured in Korean)
 
-The PR body MUST be highly detailed and structured in the user's instruction language (e.g., Korean), following this exact format:
+**🚨 Language Separation Rule:**
+Just like commit messages, the PR format uses English for structural elements (code, branches, class names), but **all explanations and prose MUST be strictly in Korean.**
 
-> ## PR 요약 (Summary)
+> ## PR 요약
 > - <전체적인 작업 목적 및 핵심 요약 1>
 > - <전체적인 작업 목적 및 핵심 요약 2>
 > 
-> ## 진행한 사항 (Changes)
-> - <상세 작업 내역 1>
-> - <상세 작업 내역 2>
-> - <상세 작업 내역 3>
+> ## 진행한 사항
+> - <도메인/레이어별 구체적인 변경 사항 및 구현 로직 기술 1>
+> - <도메인/레이어별 구체적인 변경 사항 및 구현 로직 기술 2>
 > 
-> ## 검증 (Test Evidence)
-> - `./gradlew test` 성공
-> - `./gradlew jacocoTestReport` 성공
-> - `./gradlew jacocoTestCoverageVerification` 결과 (Coverage: XX%)
+> ## 검증
+> - `./gradlew test` 성공 여부 및 통과한 테스트 개수 기술
+> - `./gradlew jacocoTestReport` 성공 및 최종 커버리지 결과 기술 (예: Coverage 84%)
 > 
-> ## 영향 범위 (Boundary & Impact)
-> - <어느 패키지/도메인까지 수정되었는지 설명>
-> - <다른 에이전트의 공유 컨트랙트 등 수정 금지 영역 준수 여부>
+> ## 영향 범위
+> - <이번 커밋으로 인해 영향을 받는 패키지 및 도메인 범위 기술>
+> - <공유 컨트랙트 수정 금지 수칙 준수 여부 명시>
 > 
 > ## Linked Issues
 > Closes #123
@@ -257,8 +283,5 @@ In projects using the integration branch pattern (§1.2), run the following peri
 
 Before the `integration branch → main` release PR:
 - Sync with latest `main` and resolve conflicts
-- Verify no API path changes, or confirm compatibility policy
-- Validate migration order (Flyway `validate-on-migrate`)
-- Confirm production env vars are in sync
 - CI passing
 - Verify deployment status and health check after merge
