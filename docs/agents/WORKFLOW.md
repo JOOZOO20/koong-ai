@@ -130,11 +130,12 @@ Re-verify PR size against §5 before pushing. If over the upper bound, split fir
 
 Follows the standard Conventional Commits spec, but **enforces a strict high-quality structure and language separation**:
 
-**🚨 Language Separation Rule:**
+**🚨 Language Separation & Title Rule:**
 - **Code & Syntax:** The commit type (`feat`, `fix`, `hotfix`), scope, branch names, and exact code elements (variable names, class names) **MUST be in English**.
 - **Prose & Explanation:** The overall description and the detailed body (context, problems, solutions) **MUST be entirely in Korean.**
+- **No Agent Mentions:** The title description MUST NOT include agent identifiers (e.g., "Agent 3"). Describe *what* was done, not *who* did it.
 
-> <type>(<scope>): <한국어 요약 설명> [(#issue)]
+> <type>(<scope>): <한국어 요약 설명 (Agent 명칭 포함 금지)> [(#issue)]
 > 
 > - 이전 상황/문제점: <이전에 어떤 기능적 문제, 비효율성, 구조적 한계 또는 제약이 있었는지 한국어로 상세 기술>
 > - 해결 방법: <문제를 해결하기 위해 어떤 논리나 아키텍처적 구조를 설계하여 해결했는지 한국어로 기술>
@@ -165,12 +166,18 @@ Follows the standard Conventional Commits spec, but **enforces a strict high-qua
 | `docs` | Documentation only (no code impact) |
 | `chore` | Build, dependencies, config, etc. |
 
-### 3.3 scope (English, lowercase) — include when domain-specific, omit when cross-cutting
+### 3.3 scope (English, lowercase) — Strict Domain Only
 
-Include scope when the change is clearly tied to one domain:
-- `feat(auth): 소셜 로그인 연동 기능 추가`
-- `fix(order): 재고가 0 미만으로 떨어지는 동시성 버그 수정`
-- `refactor(notification): 알림 템플릿 렌더링 로직 분리`
+The scope MUST be a specific domain package name (e.g., `auth`, `payment`, `notification`).
+**DO NOT use generic layers, concepts, or meaningless words as scope (e.g., `contract`, `api`, `db`, `dto`, `frontend`).**
+
+- ❌ `feat(contract): Agent 3 도메인 연동 계약 확정` (Bad: 'contract' is not a domain, and 'Agent 3' is included)
+- ❌ `fix(api): 결제 내역 조회 응답 포맷 수정` (Bad: 'api' is too generic)
+- ✅ `feat(wallet): 도메인 간 연동 계약(contract) 확정` (Good: valid domain specified)
+
+**Omit scope** when the change is cross-cutting, infrastructure-wide, or spans multiple domains.
+- ✅ `feat: 전체 도메인 연동 계약 확정` (Good: omitted scope for cross-cutting)
+- ✅ `refactor: 글로벌 에러 핸들러 구조 개편`
 
 ---
 
@@ -239,7 +246,7 @@ Examples:
 ## 6. PR Body Template (Detailed & Structured in Korean)
 
 **🚨 Language Separation Rule:**
-Just like commit messages, the PR format uses English for structural elements (code, branches, class names), but **all explanations and prose MUST be strictly in Korean.**
+Just like commit messages, the PR format uses English for structural elements (code, branches, class names), but **all explanations and prose MUST be strictly in Korean.** Do not include "Agent N" in the PR title or prose.
 
 > ## PR 요약
 > - <전체적인 작업 목적 및 핵심 요약 1>
