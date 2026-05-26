@@ -70,19 +70,20 @@ The guiding principle: always branch from the most recent common ancestor of all
 
 ---
 
-## 2. Development Workflow
+## 2. Development Workflow (The 7-Phase Loop)
 
-Plan → branch → implement → test → self-review → commit and open PR. Follow this order strictly.
+Plan → branch → implement → test → self-review → local commit → check loop → push & PR. Follow this order strictly.
 
 ### Phase 1. Plan & Branch Before You Work
 
 Before writing any code, you MUST:
 1. Clarify the work scope (which domain, which feature). **Do this entirely in the chat. Do not create `.md` files to write down your plans.**
 2. Propose API signatures (URI, method, key request/response fields).
-3. **Create and switch to a new branch** following the §1.3 naming convention (e.g., `git checkout -b feature/your-feature-name`). **Do not work directly on `main` or the integration branch.**
+3. **Create and switch to a new branch** following the §1.3 naming convention (e.g., `git checkout -b feature/wallet`). **Do not work directly on `main` or the integration branch.**
 
-### Phase 2. Implementation
+### Phase 2. Implementation (Per Task)
 
+- Pick ONE granular task from your `todo.md`.
 - Write production code following `BACKEND_CONVENTIONS.md`.
 - Respect domain boundaries (in parallel-work projects: no changes outside your ownership scope).
 - Add migration files if needed, OpenAPI annotations, and file header comments (`BACKEND_CONVENTIONS.md` §17).
@@ -102,30 +103,30 @@ If any step fails, return to Phase 2 and fix the production code autonomously.
 
 ### Phase 4. Self-Review
 
-Re-read your own diff and verify each item:
+Re-read your own diff and verify the 7 security/quality checks (Auth, SQLi, Transactions, N+1, etc.).
 
-1. **Auth / Authz** — SecurityFilterChain classification explicit; correct principal type; authorization checks where needed
-2. **SQL Injection** — JPA parameter binding everywhere; no string-concatenated SQL
-3. **Sensitive Data Exposure** — No passwords/tokens/PII/payment info in logs, responses, or external notifications; masking applied
-4. **Exception Handling** — No `try-catch` in controllers; new exceptions mapped in global handler
-5. **N+1** — 1:N queries use `@EntityGraph` or `JOIN FETCH`; no lazy field access in loops
-6. **Transactions** — Boundary in Service; read methods `readOnly = true`; cross-domain ops use outbox
-7. **Migrations** — Correct number range; soft delete + partial index + TIMESTAMPTZ + FK index pattern; no modifications to existing migrations
+### Phase 5. Local Commit (Granular)
 
-All 7 ✅ → proceed to commit and PR.
+Commit your single task to your local branch. DO NOT PUSH YET.
 
-### Phase 5. Commit & PR (GRANULAR COMMITS, BROAD PRs)
-
-> git status              # review what changed
-> git diff --stat         # confirm scope
-> # 🚨 EXCLUDE ANY AGENT META-FILES (planning, scope, to-do lists).
+> git status
+> git diff --stat
 > git add <only_real_project_source_files>
-> git commit              # follow §3 Conventional Commits format
-> git push
+> git commit              # e.g., "feat: 지갑 잔액 조회 API 추가" (No parentheses, follow §3)
 
-**🚨 Commit vs. PR Strategy:**
-- **Commits:** Should be granular and specific (e.g., `feat: 지갑 잔액 조회 API 추가`).
-- **Pull Requests (PR):** DO NOT open a PR for every single small commit or API. Accumulate your commits and open a PR ONLY when a **large domain feature** is complete (e.g., opening a PR for the entire "지갑 기능 구현" after committing all wallet-related APIs).
+### Phase 6. The "Shopping Cart" Loop (CRITICAL)
+
+After committing locally, you MUST open your `todo.md` and check your progress.
+- 🔄 **If there are MORE uncompleted tasks `[ ]` for this domain:** Stay on the current branch, DO NOT PUSH, DO NOT OPEN A PR. Mark the current task as `[x]` and immediately loop back to **Phase 2** for the next task.
+- 🏁 **If ALL tasks for this domain are completed `[x]`:** You may now proceed to Phase 7.
+
+### Phase 7. Final Push & PR (Broad Scope)
+
+Only reach this phase when the entire domain feature is complete.
+
+> git push origin <current-branch>
+
+Open a single PR with a broad title encompassing all commits (e.g., `feat: 지갑 기능 구현`). Follow the PR Output Format in §6.
 
 ---
 
