@@ -65,6 +65,7 @@ The guiding principle: always branch from the most recent common ancestor of all
 
 - Force push to the production branch (`main`) is forbidden.
 - Cross-merging between feature branches is forbidden. When a dependency is needed, merge into integration/main first, then re-branch.
+- **🚨 NO META-DOCUMENT COMMITS:** DO NOT create, modify, or commit files related to your own thought process, agent scope definitions, planning, or to-do lists (e.g., `agent-scope.md`, `plan.txt`). **ONLY commit actual project artifacts (source code, tests, DB migrations).**
 
 ---
 
@@ -75,7 +76,7 @@ Plan → branch → implement → test → self-review → commit and open PR. F
 ### Phase 1. Plan & Branch Before You Work
 
 Before writing any code, you MUST:
-1. Clarify the work scope (which domain, which feature).
+1. Clarify the work scope (which domain, which feature). **Do this entirely in the chat. Do not create `.md` files to write down your plans.**
 2. Propose API signatures (URI, method, key request/response fields).
 3. **Create and switch to a new branch** following the §1.3 naming convention (e.g., `git checkout -b feature/your-feature-name`). **Do not work directly on `main` or the integration branch.**
 
@@ -116,7 +117,8 @@ All 7 ✅ → proceed to commit and PR.
 
 > git status              # review what changed
 > git diff --stat         # confirm scope
-> git add <files>
+> # 🚨 EXCLUDE ANY AGENT META-FILES (planning, scope, to-do lists).
+> git add <only_real_project_source_files>
 > git commit              # follow §3 Conventional Commits format
 > git push
 
