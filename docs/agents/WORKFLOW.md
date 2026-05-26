@@ -42,14 +42,15 @@ Always use standard prefixes based on the work type:
 - `docs/` : Documentation updates
 - `chore/` : Build tasks, config, dependency updates
 
-**🚨 Strict Naming Rule:**
+**🚨 Strict Naming Rule (ABSOLUTE PROHIBITION):**
 Branch names MUST only describe the *purpose* or *domain* of the work. 
-**DO NOT include project names, version numbers, agent identifiers, or any other redundant context in the branch name.**
+**NEVER include project names (e.g., `dailyme`), version numbers (e.g., `v1`, `v2`), or agent identifiers (e.g., `agent3`) in the branch name.**
 
+- ❌ `feature/v2-auth-login` (Bad: includes version 'v2')
 - ❌ `feature/dailyme-v2-agent2-record-dailycall` (Bad: includes project name, version, and agent info)
-- ❌ `hotfix/v2-agent3-fix-payment` (Bad: includes version and agent info)
-- ❌ `feature/agentA-auth-login` (Bad: includes agent info)
-- ✅ `feature/record-dailycall` (Good: domain and purpose only)
+- ❌ `hotfix/v2-agent3-fix-payment` (Bad: includes version 'v2')
+- ✅ `feature/auth-login` (Good: domain and purpose only)
+- ✅ `feature/record-dailycall` (Good)
 - ✅ `hotfix/payment-rounding-error` (Good)
 
 ### 1.4 Worktree Branching
@@ -245,11 +246,19 @@ Examples:
 
 ---
 
-## 6. PR Body Template (Detailed & Structured in Korean)
+## 6. PR Output Format (Detailed & Structured in Korean)
 
-**🚨 Language Separation Rule:**
-Just like commit messages, the PR format uses English for structural elements (code, branches, class names), but **all explanations and prose MUST be strictly in Korean.** Do not include "Agent N" in the PR title or prose.
+**🚨 Language & Format Rule:**
+When you present the final PR information, you MUST provide the PR Title, Base/Compare branches, and the PR Body using the exact structure below. All text and prose MUST be strictly in Korean. Do not include "Agent N" anywhere.
 
+> ### 📋 [PR Metadata]
+> - **PR Title**: <English type(scope): Korean description (Follow §3.1 Title Rule)>
+> - **Base Branch**: <The targeted integration branch to merge into (e.g., v2 or main)>
+> - **Compare Branch**: <Your current active feature branch (e.g., feature/record-dailycall)>
+> 
+> ---
+> 
+> ### 📝 [PR Body]
 > ## PR 요약
 > - <전체적인 작업 목적 및 핵심 요약 1>
 > - <전체적인 작업 목적 및 핵심 요약 2>

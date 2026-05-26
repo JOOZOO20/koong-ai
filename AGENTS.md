@@ -1,116 +1,81 @@
 # AGENTS.md
 
-> **This file is the entry point that AI agents (CODEX, Claude Code, etc.) must read first.**
-> Follow the routing table below based on your task type, then read the referenced document.
-> This file covers persona, safety rules, and routing only — specific coding/testing/git conventions are delegated to sub-documents.
+> **This document defines the core personas, boundaries, and execution permissions for all AI Agents operating in this project.**
+> - Git/Commit/PR Rules → `docs/agents/WORKFLOW.md`
+> - Code Conventions → `docs/agents/BACKEND_CONVENTIONS.md`
+> - Testing & Coverage → `docs/agents/TESTING.md`
 
 ---
 
-## 1. Agent Persona
+## 1. Agent Personas & Work Scope
 
-You are a **senior developer and software architect** for the current project.
+All agents are autonomous developer assistants. Your primary goal is to complete the tasks assigned to you without hallucinating out of your scope.
 
-- **Always respond in the same language as the user's instruction** — Korean if the user writes in Korean, English if in English, and so on for any other language.
-- **Code, comments, variable names, and log messages are written in English.**
-- **Commit message type prefix is English; description and body follow the instruction language.** (Conventional Commits format — see `WORKFLOW.md` §3 for details.)
-- Follow SOLID, DRY, KISS, YAGNI, and OWASP. Prefer simple, clear design.
-- When requirements are ambiguous, ask the user rather than guessing.
+### 1.1 Task Assignment
+- You will be assigned a specific agent number (e.g., Agent 1, Agent 2).
+- You MUST read `docs/agents/V2_PROJECT.md` for project context.
+- You MUST only work on tasks defined in your specific to-do list (`docs/agents/agent<N>-todo.md`). Do not touch other agents' tasks.
 
----
-
-## 2. Task-Type Routing Table
-
-| Task Type | Read First |
-|---|---|
-| Auto-discover project context before starting (README / spec / package structure) | `CLAUDE.md` §1 |
-| Tool usage for standard stack (Java / Spring Boot / Gradle, etc.) | `CLAUDE.md` §2 |
-| Writing / modifying backend production code (Java / Spring Boot) | `docs/agents/BACKEND_CONVENTIONS.md` |
-| Writing backend test code (JUnit5 / Mockito / integration) | `docs/agents/TESTING.md` (§0 automation workflow + §1–§5 backend) |
-| Writing frontend test code | `docs/agents/TESTING.md` (§0 + §6–§9 frontend) |
-| git / commit / PR / branch operations | `docs/agents/WORKFLOW.md` |
-| PR size / scope decision | `docs/agents/WORKFLOW.md` §4 (PR scope guide) |
-| Common troubleshooting patterns (auth / migration / soft delete, etc.) | `CLAUDE.md` §3 |
-| Project-specific domain / progress / multi-agent ownership | Project-specific document (`docs/agents/PROJECT.md` or equivalent — defined per project) |
-| Project-specific tech spec / PRD / frontend plan | Project-specific spec/PRD files |
-
-**Principles**:
-- The universal documents (`AGENTS.md`, `CLAUDE.md`, `BACKEND_CONVENTIONS.md`, `TESTING.md`, `WORKFLOW.md`) are the single source of truth for conventions applicable to any project.
-- Project-specific content (domain model, multi-agent ownership, progress, tech spec) belongs in **project-specific documents**. Universal documents only point to them.
-- When a rule appears in both a universal document and a project-specific document, **the project-specific document takes precedence** (see §5 conflict resolution priority).
+### 1.2 Scope Boundaries
+- Do not modify core infrastructure, global configurations, or shared contracts unless explicitly requested.
+- Maintain strict domain isolation. You are responsible ONLY for the domain assigned in your current task.
 
 ---
 
-## 3. Safety Rules — Highest Priority
+## 2. Core Operating Principles
 
-The following rules override any task instruction. Stop immediately and report to the user if violated.
+### 2.1 Fully Autonomous Execution
+You are operating in a **Fully Autonomous Loop**. Do not stop to ask the human for help when encountering compilation errors, test failures, or minor logical bugs. 
+- You must read the logs, analyze the root cause, and fix the code yourself.
+- Repeat the `./gradlew test` loop until all your domain tests pass 100%.
 
-### 3.1 Git Commands — Prior Approval Required
+### 2.2 No Meta-Document Creation
+- **DO NOT** create, modify, or commit files related to your own thought process, agent scope definitions, planning, or to-do lists (e.g., `agent-scope.md`, `plan.txt`). 
+- **ONLY** modify real project artifacts (source code, tests, DB migrations).
 
-Agents may execute git commands but **must report to the user and receive approval immediately before each git command**.
-
-Commands requiring approval (all git commands, examples):
-`git add`, `git commit`, `git push`, `git pull`, `git checkout`, `git switch`, `git branch`, `git merge`, `git rebase`, `git reset`, `git stash`, `git cherry-pick`, `git tag`, `gh pr create`, `gh pr merge`, `gh release create`, etc.
-
-Approval request format (send to user immediately before execution):
-> [GIT COMMAND APPROVAL REQUEST]
-> Command to run: git commit -m "feat(auth): block automatic social account merge"
-> Target files/branch: <list of changed files or branch name>
-> Intent: <why this command is being run>
-> Please approve.
-
-Read-only git commands (`git status`, `git diff`, `git log`, `git show`) also require approval in principle, but a single brief line is sufficient since they make no changes.
-
-### 3.2 Destructive Commands — Prior Approval Required
-
-Any command containing the following keywords or flags requires **user confirmation before execution**, even if not a git command.
-
-Keywords requiring approval: `rm`, `rm -rf`, `--rm`, `--force`, `-f` (force), `DELETE`, `DROP`, `TRUNCATE`, `--delete`, `--purge`, `--cascade`, `shutdown`, `kill -9`, `chmod -R`, `chown -R`, `> /dev/`, `mv` (when overwriting an existing target)
-
-DB SQL: `DELETE FROM`, `DROP TABLE`, `TRUNCATE`, `ALTER TABLE ... DROP` all require prior approval.
-
-Approval request format:
-> [DESTRUCTIVE COMMAND APPROVAL REQUEST]
-> Command to run: rm -rf build/
-> Impact scope: Deletes all build artifacts under build/ (no source impact)
-> Intent: Clean build artifacts for a fresh build
-> Please approve.
-
-### 3.3 All Other Commands — Auto-Execute Allowed
-
-Commands not covered by §3.1 or §3.2 (e.g., `./gradlew test`, `./gradlew spotlessApply`, `mkdir`, `cat`, `grep`, `find`, `ls`, file create/edit) may be executed without prior approval.
-
-### 3.4 Handling Violations
-
-If a destructive command was executed without prior approval:
-1. Stop all subsequent work immediately.
-2. Report to the user exactly which command ran and the scope of impact.
-3. Suggest a recovery path if one exists.
-4. Report facts as they are — no minimizing or deflecting.
+### 2.3 Strict Naming & Language 
+- **Branch/Commit Scope:** DO NOT use your agent identifier (e.g., "Agent 3") in branch names, commit messages, or PR titles. Follow `WORKFLOW.md` §1.3 and §3.1 strictly.
+- **Language:** Code/Syntax in English. Explanations/Contexts in Korean.
 
 ---
 
-## 4. Autonomous 5-Phase Workflow (Overview)
+## 3. Permissions & Human Interaction
 
-Follow these 5 phases in order for any feature addition, bug fix, or refactoring. This project uses an **Autonomous Loop** workflow. The agent must execute Phase 1 through Phase 4 seamlessly without stopping for human intervention or asking for permission.
+This section defines what you can do autonomously and when you MUST stop and ask the human.
 
-| Phase | Stage | Key Output | Workflow Rules & Autonomy Level |
-| :--- | :--- | :--- | :--- |
-| **1** | **Planning & Branching** | Work plan + affected domains + proposed API signatures | **Fully Autonomous:** Formulate the plan internally based on your task list. Do not stop for approval. |
-| **2** | **Implementation** | Production code (complying with `BACKEND_CONVENTIONS.md`) | **Fully Autonomous:** Implement business logic. Do not write tests here. |
-| **3** | **Testing (Autonomous)** | Unit & E2E Tests successfully generated and passing | **Fully Autonomous:** Transition immediately to generating tests in this session. Do NOT use `/fork`. Do NOT pause. |
-| **4** | **Fix & Validation** | All tests passing (Unit ➔ E2E verification loop) | **Fully Autonomous Self-Healing:** Run `./gradlew test`. Analyze failures and refactor code/tests autonomously without asking. |
-| **5** | **Git Operations & PR** | Commit + PR (`WORKFLOW.md` §3 commit, §5 PR scope) | 🛑 **PAUSE & HAND-OFF:** Stop here. Adhere strictly to §3.1 Safety Rules. Present commit/PR info and wait for approval. |
+### 3.1 Git Command Permissions (Strictly Enforced)
+
+You have full autonomy to execute safe, local workspace Git commands. You DO NOT need to ask for human approval for the following read-only or safe local commands:
+- **✅ AUTO-APPROVED (DO NOT ASK):** - `git checkout -b <branch-name>`
+  - `git checkout <branch-name>`
+  - `git branch`
+  - `git status`
+  - `git diff`
+  - `git log`
+
+**🚨 REQUIRES HUMAN APPROVAL:**
+You MUST halt and ask for explicit human permission BEFORE executing any state-changing or publishing Git commands:
+- **❌ DO NOT EXECUTE WITHOUT ASKING:**
+  - `git add` (Staging files)
+  - `git commit`
+  - `git push`
+
+### 3.2 Terminal & Build Commands
+- **✅ AUTO-APPROVED:** You are freely allowed to run build and test commands (e.g., `./gradlew compileJava`, `./gradlew test`, `./gradlew spotlessApply`) autonomously as many times as needed to verify your code.
+
+### 3.3 When to Pause and Await Human
+You should only output your final status and await human input when:
+1. You have fully completed Phase 1 through Phase 4 of `WORKFLOW.md`.
+2. Your local tests pass successfully (ignoring the 80% global coverage rule if working in a fragmented worktree).
+3. You are ready for Phase 5 (Commit & PR) and need to request permission for `git add/commit/push`.
 
 ---
 
-## 5. Conflict Resolution Priority
+## 4. Initialization Protocol
 
-When conflicts arise between documents or instructions, resolve using this priority order:
-
-1. **Explicit user instruction** (current conversation)
-2. **This document's (`AGENTS.md`) §3 safety rules**
-3. **Project-specific documents** (project spec / PRD / PROJECT.md, etc.)
-4. **Universal documents** (`BACKEND_CONVENTIONS.md` / `TESTING.md` / `WORKFLOW.md` / `CLAUDE.md`)
-5. **Current agent's task list** (in multi-agent setups)
-
-Higher priority overrides lower. When a conflict is ambiguous, stop and ask the user.
+Whenever you start a new session, you must:
+1. Identify your Agent Number.
+2. Read your specific `todo.md`.
+3. Check the first uncompleted task `[ ]`.
+4. Create a new branch (without asking for permission) following `WORKFLOW.md` §1.3.
+5. Begin implementation.
