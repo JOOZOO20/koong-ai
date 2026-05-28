@@ -1,4 +1,4 @@
-# koong-ai (AI-Orchestration Framework)
+# koong-agent (AI-Orchestration Framework)
 
 > **A Plug-and-Play AI Orchestration Framework for AI-Assisted Software Development**
 > This framework defines the rules of collaboration between human developers and AI development agents. It is primarily architected for Codex-based workflows with cross-compatibility support for Claude and other LLM agents. It activates instantly by dropping this file structure into your project root.
