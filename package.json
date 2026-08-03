@@ -1,0 +1,35 @@
+{
+  "name": "koong-agent",
+  "version": "2.0.0",
+  "description": "Claude Code 자율 백엔드 개발 하네스 — 한국어로 말하면 백엔드가 나옵니다",
+  "bin": {
+    "koong": "bin/koong.js",
+    "koong-agent": "bin/koong.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JOOZOO20/koong-agent.git"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "install.sh",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "prepublishOnly": "node -e \"const v=require('./package.json').version,t=require('fs').readFileSync('templates/VERSION','utf8').trim();if(v!==t){console.error('VERSION mismatch: package.json='+v+' templates/VERSION='+t);process.exit(1)}\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude-code",
+    "agent",
+    "backend",
+    "harness",
+    "korean",
+    "ai-orchestration"
+  ],
+  "license": "MIT"
+}
