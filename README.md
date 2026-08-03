@@ -1,93 +1,99 @@
-# koong-agent (AI-Orchestration Framework)
+# koong-agent
 
-> **A Plug-and-Play AI Orchestration Framework for AI-Assisted Software Development**
-> This framework defines the rules of collaboration between human developers and AI development agents. It is primarily architected for Codex-based workflows with cross-compatibility support for Claude and other LLM agents. It activates instantly by dropping this file structure into your project root.
+> **한국어로 말하면 백엔드가 나옵니다.**
+> A Claude Code-native autonomous backend development harness — harness engineering + loop engineering.
 
----
-
-## 🚀 1. Introduction (What is this?)
-
-This project is a **universal directive package exclusively for AI agents** designed to prevent context loss, ensure consistent high-quality code generation, and enforce safe Git workflows during autonomous development. 
-
-It is strictly optimized for **multi-agent collaboration**, establishing clear operational boundaries between feature implementation and test code verification.
+`/koong 회원가입이랑 로그인 만들어줘` — that's the whole workflow. koong interviews you in plain Korean (no jargon, max 4 questions, sensible defaults), confirms a mini-spec, then autonomously explores, implements, tests, security-audits, commits, and opens the PR. Backend experience not required; the output is production-grade anyway.
 
 ---
 
-## 🎯 2. Objectives (Why we built this?)
+## Why this exists
 
-* **True Universality**: Provides modular, standardized conventions independent of any specific application architecture or tech stack, allowing immediate reuse across any repository.
-* **Hallucination Prevention**: Uses a highly disciplined hierarchy of constraints to stop AI from making invalid architectural assumptions or resorting to cutting corners.
-* **Strict Quality & Test Isolation**: Separates production coding from test writing. When tests fail, it forces the AI to fix the production code rather than rewriting the tests to fit the broken code.
-* **Safe Automation**: Implements strict guardrails requiring explicit human approval before executing any destructive or Git-state altering commands.
+AI coding agents write plausible code fast — and quietly skip the things that separate a demo from production: ownership checks on every endpoint, idempotency on payment paths, tests that actually exercise behavior, commits that happen only after review. Prompting "please be careful" doesn't fix this. **Enforcement does.**
 
----
+koong is a *harness*: hooks physically block `git commit`, `git push`, and `gh pr create` until a verify + 4-way review loop reports zero findings against the current diff hash. Change one line after review? The hash changes, the approval dies, the loop reruns. That's the whole trick — the model can't skip the loop, because the loop isn't a suggestion.
 
-## 📂 3. Blueprint Folder Structure (Structure)
+## What you get
 
-```text
-your-project-root/
-├── README.md                            ← This guide (Initial entry point for humans & AI)
-├── AGENTS.md                            🔵 Universal — AI Persona / Safety Directives / Routing Table
-├── CLAUDE.md                            🔵 Universal — Auto-Discovery / Tool Guide / Troubleshooting
-└── docs/agents/
-    ├── BACKEND_CONVENTIONS.md           🔵 Universal — Backend Coding Standards & Layer Principles
-    ├── TESTING.md                       🔵 Universal — Test Conventions & §0 Multi-Agent Workflow
-    └── WORKFLOW.md                      🔵 Universal — Git Branching / Lowercase Commits / PR Scopes
+| | |
+|---|---|
+| 🔁 **Commit loop** | Before every commit: verifier + code-reviewer + scope-auditor + convention-auditor + security-auditor run **in parallel**, findings get fixed, loop repeats until `FINDINGS: 0` (max 3 iterations, then escalate — never silently ship). |
+| 🔀 **PR loop** | Before every push/PR: the same fan-out on the *cumulative branch diff*, plus scripted secret scan and dependency audit. |
+| 🔒 **Security doctrine** | Rule-ID system (SEC-*) covering IDOR, authz coverage, mass assignment, JWT pitfalls, payment integrity, SSRF, migrations. Security BLOCKER/MAJOR findings are **never** auto-relaxed — fix it or get an explicit human waiver. |
+| ✂️ **Scope discipline** | A dedicated auditor deletes what you didn't ask for. No speculative features, no premature abstractions, no drive-by refactors (the Karpathy rule, enforced). |
+| 🌐 **4 stacks** | Java/Spring · Python/FastAPI · Node/Next.js · Go. Stack auto-detected; only that profile loads. Clean code *in that language's idiom* — Go reads like Go, not translated Java. |
+| 🤖 **Plan-aware models** | Detects your Claude plan (`Max→opus`, `Pro→sonnet`) and sets all 7 subagents accordingly. |
+| 🚀 **Autonomous git** | Commits always; issues + PRs automatically for significant work (auth/payments/security/migrations). Conventional Commits with Korean bodies, Korean PR templates. |
+| 🐣 **Beginner mode** | Jargon-free interviews ("출입증(토큰)"), plain-Korean progress lines, destructive-command hard blocks, "this may cost money" warnings, mock-first paid integrations, run-it-yourself ending reports with copy-paste curl examples. |
+
+## Install
+
+```bash
+cd your-project        # empty directory is fine too
+npx koong-agent init
 ```
 
-> 💡 **PRO TIP (Additional Guidance)**
-> This framework is fully globalized and generalized. To inject your repository's specific technical profiles, architectural constraints, or business domain rules, simply add **your own project specification documents (e.g., `PROJECT.md`, `v2-project.md`, or PRDs)** directly under the `docs/agents/` folder. 
-> Following the auto-scan routine defined in `CLAUDE.md §1`, the AI agent will automatically locate and ingest your custom files, seamlessly combining universal standards with your project's unique rules.
+Then in Claude Code:
 
----
-
-## 🔄 4. Core Automation Workflow (How it works)
-
-All autonomous feature developments, bug fixes, and refactoring tasks strictly adhere to this **5-phase sequential loop**:
-
-```text
- [Phase 2: Main Agent]          [Phase 3: Test Agent (/fork)]       [Phase 4: Main Agent Resumed]
-┌──────────────────────┐       ┌────────────────────────────┐      ┌─────────────────────────────┐
-│  Implement Feature   │ ───>  │ 1. Write Unit Tests        │ ───> │ 1. Run & Verify Unit Tests  │
-│(Production Code Only)│       │ 2. Write E2E/Integrations  │      │ 2. Fix Production if Failed │
-└──────────────────────┘       └────────────────────────────┘      └─────────────────────────────┘
-                                                                                  │
- [Phase 5: Git & PR Workflow]                                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Run Full Combo Verification (spotless, compile, test, jacoco) ➔ Approved Lowercase Commit & PR  │
-└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+/koong-init                      # once: plan → models, stack → verify commands, mode
+/koong 쇼핑몰 백엔드 만들어줘        # everything else
 ```
 
-1. **Phase 1: Planning & Branching** — Define work plan, identify affected modules, and create a feature branch only after explicit human approval.
-2. **Phase 2: Implementation (Main Agent)** — Write core production code strictly adhering to `BACKEND_CONVENTIONS.md`. **Absolute Rule:** The main agent must not write or touch test files during this phase.
-3. **Phase 3: Testing (Test Agent via `/fork`)** — The main agent pauses execution and prompts the user to spin up a dedicated Test Agent via `/fork`. The Test Agent writes isolated unit tests (Priority 1) followed by E2E/Integration tests (Priority 2), then terminates the session.
-4. **Phase 4: Fix & Validation (Main Agent)** — The user returns to the Main Agent session. The agent executes the new tests. **Core Principle:** If a test fails, the agent must alter the production code to resolve the issue. Modifying tests to force-pass is strictly prohibited.
-5. **Phase 5: Git Operations & PR** — Run the comprehensive local validation pipeline. Request individual approval before executing any Git command, then push using strict lowercase tracking formats (`type(scope):`).
+No Node? `curl -fsSL https://raw.githubusercontent.com/JOOZOO20/koong-agent/main/install.sh | bash`
 
----
+Check your environment anytime: `npx koong-agent doctor` · Upgrade: `npx koong-agent update` (preserves your config, model settings, and hand-edited files).
 
-## 🛠️ 5. Installation & Execution (How to use?)
+## How the harness works
 
-### Step 1: Clone and Drop Files
-Copy the boilerplate files from this repository into your target project using this exact layout:
-* Place `AGENTS.md` and `CLAUDE.md` directly into your project **root**.
-* Place the `docs/agents/` folder directly under your project's **`docs/`** directory.
+```
+ user: "/koong 지갑 기능 만들어줘"
+   │
+   ├─ interview (≤4 plain-Korean questions, defaults marked 추천)
+   ├─ mini-spec: 만드는 것 / 이건 안 만들어요(non-goals = scope contract) → confirm once
+   │
+   ▼  autonomous from here
+ explore ×4 (parallel) → implement → test-writer ×N (parallel)
+   │
+   ▼  /koong-commit  ──────────────────────────────┐
+ fan-out ×5 (parallel): verifier ┐                 │
+   code-reviewer · scope-auditor ├─ findings? ──fix┘ (max 3, fresh agents each round)
+   convention · security-auditor ┘
+   │ FINDINGS: 0
+   ▼
+ mark (diff-hash) → git commit   ← PreToolUse hook blocks commit without valid marks
+   │  ...repeat per task unit...
+   ▼  /koong-pr
+ cumulative-diff fan-out + secret scan + dep audit → push → gh pr create (Korean template)
+```
 
-### Step 2: Initialize the AI Agent Session
-When starting a fresh conversation with your AI tool (e.g., Codex or Claude), seed the session by sending this exact prompt as your very first instruction:
+**File map** (installed into your project):
 
-> *"Read `AGENTS.md` at the project root first to understand your persona, safety directives, routing rules, and the strict 5-phase multi-agent development workflow before executing any tasks."*
+```
+CLAUDE.md                     orchestration brain (routing, iron rules, parallelism mandate)
+.claude/
+├── settings.json             hooks + pre-approved permissions (this is what makes it autonomous)
+├── agents/koong-*.md         7 subagents
+├── skills/koong*/SKILL.md    /koong /koong-new /koong-init /koong-commit /koong-pr /koong-issue
+└── koong/scripts/*.sh        gate-git · diff-hash · mark · detect-plan · detect-stack · guards
+docs/koong/
+├── core-principles.md        scope discipline · clean code · clean architecture · production baseline
+├── security.md               the SEC-* doctrine
+├── git-policy.md             autonomous git rules · Korean commit/PR/issue formats
+├── testing.md                FIRST · Given-When-Then · the Iron Rule
+└── profiles/                 java-spring · python · node-nextjs · go
+```
 
-The AI agent will instantly map out your environment, honor the execution boundaries, and begin safe, highly disciplined autonomous programming.
+## 한국어 요약
 
----
+**koong-agent는 Claude Code 위에서 백엔드 개발을 자율 수행하는 하네스입니다.**
 
-## 🇰🇷 한국어 요약 (Korean Summary)
+1. **설치**: `npx koong-agent init` → Claude Code에서 `/koong-init` 한 번.
+2. **사용**: `/koong 만들고 싶은 것`을 한국어로. 백엔드를 몰라도 됩니다 — 전문용어 없는 질문 몇 개(추천값 제공)에 답하면 끝.
+3. **품질**: 모든 커밋 전에 검증 + 4종 리뷰(정확성·범위·컨벤션·보안)가 병렬로 돌고, 지적이 0이 될 때까지 수정 루프를 반복합니다. **이 루프는 훅이 물리적으로 강제**합니다 — 건너뛸 수 없습니다.
+4. **보안**: 소유권 검증, 결제 멱등성, JWT 함정, 시크릿 스캔, 의존성 감사까지. 보안 BLOCKER/MAJOR는 절대 완화되지 않습니다.
+5. **git**: 커밋·이슈·PR·푸시 모두 자동. 인증/결제/보안 같은 중요한 작업은 이슈부터 만들고 PR로 마무리합니다.
 
-본 프로젝트는 **인간 개발자와 AI 에이전트 간의 안전하고 효율적인 협업을 위해 설계된 AI 전용 지침서 패키지**입니다. 주로 Codex 기반의 워크플로우에 맞춰 정밀하게 설계되었으며, Claude와 같은 타 LLM 에이전트도 완벽하게 참고할 수 있도록 범용적인 마크다운 포맷으로 추상화되어 있습니다.
+## License
 
-### 핵심 요약
-1. **만능 공용화 구조**: 특정 프로젝트에 종속되지 않는 6개의 핵심 문서로만 구성되어 있어, 어떤 프로젝트 루트든 폴더째 그대로 복사·붙여넣기(`Plug-and-Play`)하여 바로 사용할 수 있습니다.
-2. **멀티 에이전트 격리**: 기능 개발(메인 AI)과 테스트 코드 작성(테스트 AI, `/fork` 활용)의 역할을 철저히 분리하여 AI가 스스로 편법 코드를 짜거나 환각을 일으키는 것을 방지합니다.
-3. **강력한 확장성**: 프로젝트 고유의 기술 스택 정보나 특수 제약 조건이 필요하다면, `docs/agents/` 폴더 하위에 개별 문서(예: `PROJECT.md`)를 추가하기만 하면 AI가 자동 발견(`§1 Auto-Discovery`)하여 똑똑하게 반영합니다.
-4. **사용 방법**: 파일을 루트 및 `docs/` 하위에 복사한 뒤, AI 세션이 시작될 때 첫 명령어로 `"Read AGENTS.md at the project root first..."` 문장을 던져주면 AI가 스스로 규칙을 주입받고 엄격한 제어 하에 자율 개발을 수행합니다.
+MIT
