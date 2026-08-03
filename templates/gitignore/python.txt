@@ -1,0 +1,14 @@
+# koong: python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+*.egg-info/
+.env
+.env.*
+!.env.example
+.claude/koong/state/

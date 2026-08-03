@@ -1,0 +1,11 @@
+# koong: java-spring
+.gradle/
+build/
+out/
+*.class
+.idea/
+*.iml
+.env
+.env.*
+!.env.example
+.claude/koong/state/

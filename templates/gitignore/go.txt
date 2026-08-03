@@ -1,0 +1,10 @@
+# koong: go
+bin/
+*.exe
+*.test
+*.out
+vendor/
+.env
+.env.*
+!.env.example
+.claude/koong/state/

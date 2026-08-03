@@ -1,0 +1,11 @@
+# koong: node-nextjs
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.claude/koong/state/
