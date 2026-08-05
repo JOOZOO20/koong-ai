@@ -1,4 +1,5 @@
-# koong-agent
+# <img width="100" height="100" alt="koong-ai-logo" src="https://github.com/user-attachments/assets/92617f0a-cb55-4ea6-9d64-acc41f55cdf5" />
+koong-agent
 
 > **한국어로 말하면 백엔드가 나옵니다.**
 > A Claude Code-native autonomous backend development harness — harness engineering + loop engineering.
